@@ -1,9 +1,25 @@
 package app
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"net/http"
 
-func (app *App) HandleLogin() fiber.Handler {
+	"github.com/arafatazam/mini-twitter/dto"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/gofiber/fiber/v2"
+)
+
+func (app *App) HandleSignup() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		return ctx.SendString("testing")
+		req := new(dto.NewUserReq)
+		if err := ctx.BodyParser(req); err != nil {
+            return err
+		}
+		if err := validation.Validate(req); err != nil {
+			return ctx.Status(http.StatusBadRequest).JSON(err)
+		}
+		if err := app.UserCRUD.Create(req); err != nil {
+			return err
+		}
+		return ctx.SendStatus(http.StatusCreated)
 	}
 }
